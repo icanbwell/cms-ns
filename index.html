@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CMS-Aligned Network Specification — Editor's Draft</title>
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --fg-muted: #555;
+    --fg-faint: #888;
+    --bg: #ffffff;
+    --bg-soft: #fafafa;
+    --bg-code: #f4f4f5;
+    --accent: #0f5132;
+    --accent-soft: #e7f1ec;
+    --rule: #e5e5e5;
+    --rule-strong: #d4d4d4;
+    --must: #b91c1c;
+    --must-bg: #fef2f2;
+    --should: #b45309;
+    --should-bg: #fffbeb;
+    --may: #1d4ed8;
+    --may-bg: #eff6ff;
+    --note-bg: #f5f5f4;
+    --max-w: 760px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-soft); }
+  a:hover { border-bottom-color: var(--accent); }
+  code, pre, .kw {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.92em;
+  }
+  code {
+    background: var(--bg-code);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    max-width: 1180px;
+    margin: 0 auto;
+    gap: 48px;
+    padding: 0 32px;
+  }
+  aside {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 0 32px 0;
+    border-right: 1px solid var(--rule);
+    font-size: 14px;
+  }
+  aside h2 {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+    margin: 0 0 12px 0;
+    font-weight: 600;
+  }
+  aside ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  aside ol li { margin: 0; padding: 0; }
+  aside ol li a {
+    display: block;
+    padding: 5px 12px 5px 0;
+    color: var(--fg-muted);
+    border-bottom: none;
+    border-left: 2px solid transparent;
+    padding-left: 12px;
+  }
+  aside ol li a:hover { color: var(--fg); border-left-color: var(--rule-strong); }
+  aside ol li a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 500; }
+  aside ol ol { margin-top: 2px; }
+  aside ol ol a { font-size: 13px; padding-left: 24px; }
+  main {
+    padding: 56px 0 120px 0;
+    max-width: var(--max-w);
+  }
+  .titleblock {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 28px;
+    margin-bottom: 32px;
+  }
+  .eyebrow {
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 8px 0;
+  }
+  h1 {
+    font-size: 38px;
+    line-height: 1.15;
+    margin: 0 0 16px 0;
+    letter-spacing: -0.015em;
+    font-weight: 700;
+  }
+  .metabox {
+    background: var(--bg-soft);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--fg-muted);
+  }
+  .metabox dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 0; }
+  .metabox dt { color: var(--fg-faint); }
+  .metabox dd { margin: 0; color: var(--fg); }
+  h2 {
+    font-size: 26px;
+    line-height: 1.25;
+    margin: 56px 0 16px 0;
+    letter-spacing: -0.01em;
+    font-weight: 650;
+    padding-top: 8px;
+  }
+  h3 {
+    font-size: 19px;
+    margin: 32px 0 10px 0;
+    font-weight: 600;
+  }
+  h4 {
+    font-size: 16px;
+    margin: 24px 0 6px 0;
+    font-weight: 600;
+    color: var(--fg-muted);
+  }
+  p { margin: 0 0 16px 0; }
+  ul, ol { margin: 0 0 16px 0; padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  blockquote {
+    margin: 16px 0;
+    padding: 12px 20px;
+    background: var(--note-bg);
+    border-left: 3px solid var(--rule-strong);
+    color: var(--fg-muted);
+    border-radius: 0 4px 4px 0;
+  }
+  blockquote p { margin-bottom: 0; }
+  .kw {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    font-size: 0.82em;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+    vertical-align: baseline;
+  }
+  .kw.must { color: var(--must); background: var(--must-bg); }
+  .kw.must-not { color: var(--must); background: var(--must-bg); }
+  .kw.should { color: var(--should); background: var(--should-bg); }
+  .kw.should-not { color: var(--should); background: var(--should-bg); }
+  .kw.may { color: var(--may); background: var(--may-bg); }
+  .kw.shall { color: var(--must); background: var(--must-bg); }
+  .kw.required { color: var(--must); background: var(--must-bg); }
+  .kw.recommended { color: var(--should); background: var(--should-bg); }
+  .kw.optional { color: var(--may); background: var(--may-bg); }
+  hr {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 48px 0;
+  }
+  .callout {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    background: var(--bg-soft);
+    padding: 14px 18px;
+    border-radius: 0 4px 4px 0;
+    margin: 16px 0;
+    font-size: 15px;
+  }
+  .callout .label {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .callout.warn { border-left-color: var(--should); }
+  .callout.warn .label { color: var(--should); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th {
+    font-weight: 600;
+    background: var(--bg-soft);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  td:first-child, th:first-child { padding-left: 0; }
+  td:last-child, th:last-child { padding-right: 0; }
+  .section-anchor {
+    color: var(--fg-faint);
+    font-weight: 400;
+    font-size: 0.9em;
+    margin-right: 8px;
+  }
+  .footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    font-size: 13px;
+    color: var(--fg-faint);
+  }
+  .anchor-link {
+    visibility: hidden;
+    margin-left: 8px;
+    color: var(--fg-faint);
+    font-weight: 400;
+    border-bottom: none;
+    font-size: 0.7em;
+  }
+  h2:hover .anchor-link, h3:hover .anchor-link { visibility: visible; }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; gap: 0; padding: 0 20px; }
+    aside {
+      position: static;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--rule);
+      padding: 20px 0;
+    }
+    main { padding: 24px 0 60px 0; }
+    h1 { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <h2>On this page</h2>
+    <ol>
+      <li><a href="#abstract">Abstract</a></li>
+      <li><a href="#status">Status of This Document</a></li>
+      <li><a href="#conformance"><span class="section-anchor">1</span>Conformance</a></li>
+      <li><a href="#terminology"><span class="section-anchor">2</span>Terminology</a></li>
+      <li><a href="#architecture"><span class="section-anchor">3</span>Architecture Overview</a></li>
+      <li><a href="#obligations"><span class="section-anchor">4</span>The Three Core Obligations</a>
+        <ol>
+          <li><a href="#obl-1">4.1 Respond for data holders</a></li>
+          <li><a href="#obl-2">4.2 Vouch for good standing</a></li>
+          <li><a href="#obl-3">4.3 Respond cross-network</a></li>
+          <li><a href="#obl-4">4.4 Emergent coverage</a></li>
+        </ol>
+      </li>
+      <li><a href="#pathways"><span class="section-anchor">5</span>Connectivity Pathways</a>
+        <ol>
+          <li><a href="#path-1">5.1 Intranetwork</a></li>
+          <li><a href="#path-2">5.2 Peering</a></li>
+          <li><a href="#path-3">5.3 Federated FHIR / RLS</a></li>
+          <li><a href="#path-4">5.4 Targeted via NPD</a></li>
+        </ol>
+      </li>
+      <li><a href="#matching"><span class="section-anchor">6</span>Patient Matching</a></li>
+      <li><a href="#auto-reg"><span class="section-anchor">7</span>Auto-Registration &amp; Presumptive Eligibility</a></li>
+      <li><a href="#query"><span class="section-anchor">8</span>Query Handling</a></li>
+      <li><a href="#npd"><span class="section-anchor">9</span>NPD Publication</a></li>
+      <li><a href="#audit"><span class="section-anchor">10</span>Audit Logging</a></li>
+      <li><a href="#security"><span class="section-anchor">11</span>Security</a></li>
+      <li><a href="#fees"><span class="section-anchor">12</span>Fees &amp; Economics</a></li>
+      <li><a href="#accountability"><span class="section-anchor">13</span>Accountability</a></li>
+      <li><a href="#july"><span class="section-anchor">14</span>Criterion #13 — July 4, 2026</a></li>
+      <li><a href="#open-questions">Appendix A — Open Questions</a></li>
+      <li><a href="#sources">Appendix B — Source Documents</a></li>
+      <li><a href="#references">Appendix C — Normative References</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <div class="titleblock">
+      <p class="eyebrow">Editor's Draft · Community Specification</p>
+      <h1>CMS-Aligned Network Specification</h1>
+      <p style="font-size: 17px; color: var(--fg-muted); margin: 0;">
+        Technical and operational requirements for Health Information Networks seeking
+        recognition under the CMS Health Technology Ecosystem.
+      </p>
+      <div class="metabox">
+        <dl>
+          <dt>This version</dt><dd><code>can-spec/0.1-draft</code></dd>
+          <dt>Latest published</dt><dd><em>none yet</em></dd>
+          <dt>Date</dt><dd>May 27, 2026</dd>
+          <dt>Editor</dt><dd>Liz Lewis · b.well Connected Health</dd>
+          <dt>Feedback</dt><dd>CMS HTE working groups</dd>
+        </dl>
+      </div>
+    </div>
+
+    <section id="abstract">
+      <h2>Abstract</h2>
+      <p>This document specifies the technical and operational requirements a Health Information
+      Network <span class="kw must">MUST</span> meet to be recognized as a
+      <strong>CMS-Aligned Network (CAN)</strong> under the CMS Health Technology Ecosystem (HTE).</p>
+      <p>The specification covers the three core obligations of a CMS-Aligned Network, the four
+      permitted connectivity pathways, patient matching, query handling, National Provider Directory
+      (NPD) publication, audit logging, security validation, fees, and accountability.</p>
+      <p>This specification deliberately covers <strong>network obligations only</strong>. Trust
+      pathways for apps, EHRs, providers, and payers are referenced where they intersect network
+      behavior but are specified elsewhere.</p>
+    </section>
+
+    <section id="status">
+      <h2>Status of This Document</h2>
+      <p>This is an editor's draft assembled from working-group materials. It has no normative
+      force on its own. The authoritative source for CMS-Aligned status is the
+      <strong>CMS Interoperability Framework</strong> published by CMS at
+      <a href="https://www.cms.gov/health-technology-ecosystem/interoperability-framework">cms.gov/health-technology-ecosystem/interoperability-framework</a>.
+      Where this document and the Framework conflict, the Framework controls.</p>
+      <p>This draft is offered as a consolidated rendering of network-side requirements so that
+      implementers can evaluate conformance against a single artifact. Working-group input is
+      welcome on operational specifics (auto-registration profiles, audit standards, dispute
+      resolution, presumptive-eligibility scope).</p>
+    </section>
+
+    <section id="conformance">
+      <h2><span class="section-anchor">1</span>Conformance</h2>
+      <p>The keywords
+      <span class="kw must">MUST</span>,
+      <span class="kw must-not">MUST NOT</span>,
+      <span class="kw required">REQUIRED</span>,
+      <span class="kw shall">SHALL</span>,
+      <span class="kw shall">SHALL NOT</span>,
+      <span class="kw should">SHOULD</span>,
+      <span class="kw should-not">SHOULD NOT</span>,
+      <span class="kw recommended">RECOMMENDED</span>,
+      <span class="kw may">MAY</span>, and
+      <span class="kw optional">OPTIONAL</span>
+      in this document are to be interpreted as described in
+      <a href="https://www.rfc-editor.org/rfc/rfc2119">RFC&nbsp;2119</a> when, and only when, they
+      appear in all capitals.</p>
+      <p>A network conforms to this specification when it satisfies every
+      <span class="kw must">MUST</span> in §§ 3–12 and is in good standing under § 13.</p>
+    </section>
+
+    <section id="terminology">
+      <h2><span class="section-anchor">2</span>Terminology</h2>
+      <p><strong>CMS-Aligned Network (CAN).</strong> A Health Information Network recognized by CMS
+      as meeting the obligations defined in this specification.</p>
+      <p><strong>Home Network.</strong> The single CAN through which a given participant (app, data
+      holder, delegated tech solution) is onboarded and held to be in good standing.</p>
+      <p><strong>Data Holder.</strong> A HIPAA covered entity (provider organization or payer) that
+      holds patient records and exposes them via a network.</p>
+      <p><strong>Tech Solution.</strong> A patient-facing application, third-party delegated software,
+      or other ecosystem participant that originates queries.</p>
+      <p><strong>Federal Trust Signal.</strong> A federally grounded credential or attestation that
+      travels with an actor (e.g., ONC certification, CARIN Code of Conduct, DirectTrust accreditation,
+      DiME seal, IAL2 verification, Medicare App Library listing, NPD listing, HIPAA covered-entity
+      status, X.509 credential).</p>
+      <p><strong>Good Standing.</strong> As defined in § 4.3: completed home-network onboarding,
+      current on obligations, no active unresolved complaints, passed operational health checks,
+      not suspended.</p>
+      <p><strong>NPD.</strong> National Provider Directory. The authoritative public registry of
+      ecosystem participants, endpoints, and inter-network connections.</p>
+      <p><strong>RLS.</strong> Record Locator Service.</p>
+      <p><strong>Use Case.</strong> One of: patient access, treatment, payment, operations, prior
+      authorization, payer-to-payer.</p>
+    </section>
+
+    <section id="architecture">
+      <h2><span class="section-anchor">3</span>Architecture Overview</h2>
+      <p>The HTE architecture establishes a <strong>federal floor</strong> that is mandatory for
+      participants who choose to be CMS-Aligned. Above the floor, networks compete and differentiate
+      freely.</p>
+
+      <h3>3.1 Non-Goals</h3>
+      <p>A CMS-Aligned Network is <span class="kw must-not">NOT</span> required to:</p>
+      <ul>
+        <li>sign a common agreement with other networks;</li>
+        <li>peer commercially with every other CMS-Aligned Network;</li>
+        <li>adopt a universal routing architecture;</li>
+        <li>share liability with other networks;</li>
+        <li>adopt common pricing or governance.</li>
+      </ul>
+
+      <h3>3.2 What Networks <span class="kw must">MUST</span> Do</h3>
+      <p>Every CMS-Aligned Network <span class="kw must">MUST</span>:</p>
+      <ol>
+        <li>Meet the three core obligations in § 4.</li>
+        <li>Support at least one of the four connectivity pathways in § 5 for each query type it handles.</li>
+        <li>Use the CMS-approved patient matching logic (§ 6).</li>
+        <li>Honor auto-registration and presumptive eligibility for participants in good standing on another home CAN (§ 7).</li>
+        <li>Respond to authorized queries without portal login (§ 8).</li>
+        <li>Publish to NPD (§ 9).</li>
+        <li>Produce audit logs accessible to patients (§ 10).</li>
+        <li>Maintain HITRUST or equivalent security validation (§ 11).</li>
+        <li>Comply with the fees floor (§ 12).</li>
+        <li>Remain accountable to CMS for ongoing compliance (§ 13).</li>
+      </ol>
+    </section>
+
+    <section id="obligations">
+      <h2><span class="section-anchor">4</span>The Three Core Obligations</h2>
+
+      <h3 id="obl-1">4.1 Respond to queries for data holders on the network</h3>
+      <p>A CAN <span class="kw must">MUST</span> respond when an authorized query reaches the network
+      and a data holder on the network holds matching data, across every Use Case the network's
+      participants engage in. This includes, at minimum, patient access, treatment, and payment
+      queries within applicable use cases.</p>
+      <p>A CAN <span class="kw must-not">MUST NOT</span> decline to respond solely because the
+      originating query came from a participant whose home network is different.</p>
+
+      <h3 id="obl-2">4.2 Vouch for participants in good standing</h3>
+      <p>A CAN <span class="kw must">MUST</span> maintain the operational status of each of its
+      onboarded participants and <span class="kw must">MUST</span> report good standing (or lack
+      thereof) when queried by another CAN or by NPD.</p>
+      <p>A CAN <span class="kw must-not">MUST NOT</span> attest to federal legal compliance on
+      behalf of its participants. Operational status only.</p>
+      <p>A CAN <span class="kw must">MUST</span> suspend a participant's good-standing report when
+      the participant has been suspended or flagged by the network, or has failed an operational
+      health check that the network publishes.</p>
+
+      <h3 id="obl-3">4.3 Respond to credentialed tech solutions from other home networks</h3>
+      <p>When a tech solution presents valid Federal Trust Signals <strong>and</strong> is reported
+      in good standing on its home CAN, the receiving CAN <span class="kw must">MUST</span> respond
+      to its queries.</p>
+      <p>The receiving CAN <span class="kw must-not">MUST NOT</span> impose duplicative trust gating
+      on top of the Federal Trust Signals and the home-network good-standing report. Operational
+      coordination (abuse contacts, rate-limit coordination, ops contacts, support channels)
+      <span class="kw may">MAY</span> be required.</p>
+
+      <h3 id="obl-4">4.4 Emergent Coverage</h3>
+      <div class="callout">
+        <span class="label">Design principle</span>
+        Ecosystem-wide coverage emerges from every CAN meeting § 4.1–4.3. A CAN <strong>is not</strong>
+        responsible for guaranteeing ecosystem-wide coverage — only for its own three obligations.
+      </div>
+      <p>A CAN <span class="kw may">MAY</span> fulfill its obligations using any combination of the
+      pathways in § 5.</p>
+    </section>
+
+    <section id="pathways">
+      <h2><span class="section-anchor">5</span>Connectivity Pathways</h2>
+      <p>A CAN <span class="kw must">MUST</span> support at least one of the following four pathways
+      for each query type it handles. A CAN <span class="kw may">MAY</span> support more than one.</p>
+
+      <h3 id="path-1">5.1 Pathway 1 — Intranetwork</h3>
+      <p>The CAN serves queries against data holders that have contracted directly with the CAN as
+      their home network.</p>
+      <h4>Assumptions</h4>
+      <ul>
+        <li>The participant has a direct contract with the CAN.</li>
+        <li>The CAN is in good standing as CMS-Aligned.</li>
+      </ul>
+      <h4>Conformance</h4>
+      <ul>
+        <li>The CAN <span class="kw must">MUST</span> respond to authorized queries for any data holder on the network across applicable use cases.</li>
+      </ul>
+
+      <h3 id="path-2">5.2 Pathway 2 — Peering with a Partner Network</h3>
+      <p>Bilateral, network-to-network exchange that goes deeper than the baseline federation
+      interface in Pathway 3.</p>
+      <h4>Assumptions</h4>
+      <ul>
+        <li>Voluntary, commercial, and bilateral.</li>
+        <li>Not required by CMS-Aligned status.</li>
+        <li>Both networks remain individually responsible for their conduct. No shared liability pool.</li>
+        <li>The peering contract governs settlement, transit, and SLAs.</li>
+      </ul>
+      <h4>Conformance</h4>
+      <ul>
+        <li>Pathway 2 <span class="kw may">MAY</span> be used by a CAN to satisfy its obligations in § 4 but <span class="kw must-not">MUST NOT</span> be the <em>only</em> available pathway, because peering is voluntary and a partner network can withdraw.</li>
+      </ul>
+
+      <h3 id="path-3">5.3 Pathway 3 — Federated FHIR Queries via CMS-Aligned RLS Endpoints</h3>
+      <p>The standardized broadcast/discovery path. Patient discovery and provider discovery via the
+      federation interface.</p>
+      <h4>Assumptions</h4>
+      <ul>
+        <li>Every CAN exposes a standardized RLS endpoint at a known address listed in NPD.</li>
+        <li>The endpoint accepts authenticated requests from other CMS-Aligned Networks.</li>
+        <li>Common patient matching (§ 6) applies.</li>
+      </ul>
+      <h4>Conformance</h4>
+      <ul>
+        <li>A CAN <span class="kw must">MUST</span> expose a standardized RLS endpoint at the address published in NPD.</li>
+        <li>A CAN <span class="kw must">MUST</span> accept authenticated requests from other CMS-Aligned Networks on this endpoint.</li>
+        <li>A CAN <span class="kw must">MUST</span> apply the CMS patient matching rule (§ 6) to all queries received via Pathway 3.</li>
+      </ul>
+      <div class="callout warn">
+        <span class="label">Note</span>
+        The exact wire profile of the RLS endpoint, the federation transport, and the
+        authentication scheme between CANs are intentionally left to the CMS Interoperability
+        Framework and the working-group operational profiles. This specification fixes the
+        <em>obligation</em> to expose and accept; it does not (yet) fix the transport profile.
+        <strong>Open question — see Appendix A.</strong>
+      </div>
+
+      <h3 id="path-4">5.4 Pathway 4 — Targeted Queries Against NPD</h3>
+      <p>The connector queries a specific endpoint by NPI (or equivalent identifier) listed in NPD,
+      when there is evidence the patient has data at that endpoint (e.g., a payer that received a
+      claim from a specific provider).</p>
+      <h4>Assumptions</h4>
+      <ul>
+        <li>The connector has direct query rights under HIPAA right of access, treatment/payment/operations purpose of use, or other applicable legal authority.</li>
+        <li>NPD listing is authoritative for endpoint discovery.</li>
+      </ul>
+      <h4>Conformance</h4>
+      <ul>
+        <li>A CAN <span class="kw must">MUST</span> publish its participants' endpoints to NPD in a form that supports targeted queries by NPI or equivalent identifier.</li>
+        <li>A CAN <span class="kw should">SHOULD</span> rate-limit or otherwise constrain unbounded discovery patterns (e.g., geographic broadcast) to prevent spamming of endpoints. The specific constraint mechanism is an open question — see Appendix A.</li>
+      </ul>
+    </section>
+
+    <section id="matching">
+      <h2><span class="section-anchor">6</span>Patient Matching</h2>
+      <p>A CAN <span class="kw must">MUST</span> implement the CMS-approved patient matching logic
+      specified in the CMS Interoperability Framework. The current MVP standard is the
+      <strong>27-combination matching rule</strong>.</p>
+      <p>A CAN <span class="kw must">MUST</span> respond when a query received via any pathway in
+      § 5 matches a patient record across any of the 27 specified combinations.</p>
+      <blockquote>
+        <p>The exact field list and combination matrix are specified in the CMS Interoperability Framework, not duplicated here.</p>
+      </blockquote>
+    </section>
+
+    <section id="auto-reg">
+      <h2><span class="section-anchor">7</span>Auto-Registration &amp; Presumptive Eligibility</h2>
+
+      <h3>7.1 Auto-Registration</h3>
+      <p>When a tech solution holds the trust signals appropriate to its actor type (see § 2 "Federal
+      Trust Signal"), holds an X.509 credential, and has been onboarded by one home CAN, every other
+      CAN <span class="kw must">MUST</span> register that tech solution on a defined timeline without
+      redundant onboarding.</p>
+      <p>The timeline is set by the CMS Interoperability Framework.</p>
+      <p>A CAN <span class="kw must-not">MUST NOT</span> impose duplicative trust gating on top of the
+      federally grounded credentials. Operational coordination (abuse contacts, rate-limit, security
+      procedures, support channels) <span class="kw may">MAY</span> be coordinated.</p>
+
+      <h3>7.2 Presumptive Eligibility</h3>
+      <p>A participant that has met its trust requirements and is in good standing on one home CAN
+      <span class="kw must">MUST</span> be allowed by other CANs to operate for a default
+      <strong>90-day</strong> presumptive-eligibility period without redundant onboarding.</p>
+      <p>After 90 days, presumptive eligibility transitions to ongoing recognition unless there is
+      specific cause to suspend.</p>
+      <p>Three conditions are required:</p>
+      <ol>
+        <li>The participant meets the trust requirements applicable to its actor type.</li>
+        <li>The home CAN's onboarding establishes that the participant works in production.</li>
+        <li>The participant is in good standing on the home CAN.</li>
+      </ol>
+      <p>A CAN <span class="kw may">MAY</span> suspend presumptive eligibility for cause, including
+      operational abuse, security incidents, or a good-standing downgrade on the home CAN. A CAN
+      that suspends <span class="kw must">MUST</span> report the suspension to NPD and to the home
+      CAN.</p>
+    </section>
+
+    <section id="query">
+      <h2><span class="section-anchor">8</span>Query Handling</h2>
+
+      <h3>8.1 No Portal Login</h3>
+      <p>A CAN, and every EHR or data holder it routes to, <span class="kw must">MUST</span> respond
+      to authorized queries from properly credentialed parties without requiring portal login as a
+      precondition.</p>
+      <p>For patient-directed access, IAL2 identity verification through a CMS-approved CSP (e.g.,
+      CLEAR, ID.me) plus app authorization is sufficient.</p>
+
+      <h3>8.2 Respond Completely</h3>
+      <p>When a query is authorized, the response <span class="kw must">MUST</span> include all data
+      the responder holds for the patient, structured and unstructured, within the applicable Use
+      Case.</p>
+      <p>The minimum data scope for structured data is <strong>USCDI v3</strong> (or the version
+      current at the time of the query, as specified by the CMS Interoperability Framework).
+      Unstructured artifacts (clinical notes, scanned PDFs, imaging reports, encounter documents,
+      faxes) <span class="kw must">MUST</span> be included where they exist.</p>
+      <blockquote><p>No use case becomes a dead end.</p></blockquote>
+
+      <h3>8.3 Use Case Coverage</h3>
+      <p>A CAN <span class="kw must">MUST</span> respond to queries from the actor categories that
+      apply to the use cases its participants engage in:</p>
+      <ul>
+        <li>patients seeking their own records;</li>
+        <li>providers requesting clinical and claims data for treatment;</li>
+        <li>payers (where applicable) requesting clinical data supporting claims from the last 60 days;</li>
+        <li>payer-to-payer flows for member transitions;</li>
+        <li>prior authorization queries (subject to CMS-0057-F deadlines).</li>
+      </ul>
+      <p>If a network's participants engage in a use case, the network <span class="kw must">MUST</span>
+      support queries for that use case.</p>
+
+      <h3>8.4 Purpose of Use Propagation</h3>
+      <p>Every data request <span class="kw must">MUST</span> declare why the data is being accessed.
+      A CAN <span class="kw must">MUST</span> support the HL7 Purpose of Use code set and apply the
+      correct disclosure rules to each category.</p>
+      <p>Purpose of use <span class="kw must">MUST</span> travel with the request to downstream
+      systems.</p>
+      <p>When the requesting party is trusted and the purpose of use is properly declared, a CAN
+      and its participants <span class="kw must-not">MUST NOT</span> impose additional authorization
+      requirements on top.</p>
+
+      <h3>8.5 Patient-Contributed Data</h3>
+      <p>A CAN <span class="kw must">MUST</span> accept patient-contributed data (patient-reported
+      outcomes, home device readings, symptom history, lifestyle data, notes) from patient-facing
+      apps when the patient chooses to share, and <span class="kw must">MUST</span> pass that
+      information through to the appropriate data holder for inclusion in patient records or care
+      use.</p>
+      <p>Patient choice governs whether patient-contributed data flows. Nothing in this section
+      overrides patient control.</p>
+    </section>
+
+    <section id="npd">
+      <h2><span class="section-anchor">9</span>National Provider Directory Publication</h2>
+      <p>A CAN <span class="kw must">MUST</span> publish to NPD:</p>
+      <ul>
+        <li>its onboarded participants (apps, providers, payers, delegated tech solutions);</li>
+        <li>its participants' endpoints in a form that supports Pathway 4 (targeted query by identifier);</li>
+        <li>its inter-network peering connections;</li>
+        <li>usage metrics by participant and by use case.</li>
+      </ul>
+      <p>A CAN <span class="kw must">MUST</span> ingest and publish updates routinely. The
+      ingest/refresh cadence is specified by the CMS Interoperability Framework.</p>
+      <p>NPD <span class="kw must">MUST</span> also be queryable by any CAN, auditor, or participant
+      to confirm an actor's listing and credentials. Trust travels with the actor because it is
+      anchored in NPD as a public, queryable record that any CAN can read without bilateral
+      verification.</p>
+    </section>
+
+    <section id="audit">
+      <h2><span class="section-anchor">10</span>Audit Logging</h2>
+      <p>A CAN <span class="kw must">MUST</span> produce audit logs for queries on its network,
+      including:</p>
+      <ul>
+        <li>who accessed the data;</li>
+        <li>when;</li>
+        <li>for what declared purpose of use;</li>
+        <li>which organizations were involved.</li>
+      </ul>
+      <p>Audit logs <span class="kw must">MUST</span> be organization-level at minimum.</p>
+      <p>A CAN <span class="kw must">MUST</span> facilitate patient-facing audit access so patients
+      can see, through their app, who queried their data.</p>
+      <p>EHRs facilitating ecosystem queries are subject to the same audit obligations as the CAN
+      routing through them.</p>
+    </section>
+
+    <section id="security">
+      <h2><span class="section-anchor">11</span>Security</h2>
+      <p>A CAN <span class="kw must">MUST</span> maintain <strong>HITRUST certification or
+      equivalent</strong> security validation, as approved by CMS.</p>
+      <p>Security certification does <strong>NOT</strong> replace compliance with HIPAA, the Privacy
+      Act, or applicable state laws.</p>
+      <p>Business Associate Agreements (BAAs) <span class="kw may">MAY</span> be required even where
+      data is not directly brokered (for example, when a participant queries an RLS endpoint under
+      Pathway 4). Networks and participants <span class="kw must">MUST</span> confirm their BAA
+      obligations under HIPAA.</p>
+    </section>
+
+    <section id="fees">
+      <h2><span class="section-anchor">12</span>Fees &amp; Economics</h2>
+
+      <h3>12.1 Patient-Directed Access</h3>
+      <p>A CAN <span class="kw must-not">MUST NOT</span> structure fees in a way that gates a
+      patient's federal right to access their own data.</p>
+      <p>The Fees exception at <a href="https://www.ecfr.gov/current/title-45/part-171/section-171.302">45 CFR 171.302</a>
+      and the ONC information blocking framework establish this floor. Cost recovery is permitted;
+      platform fees structured to defeat patient access are not.</p>
+
+      <h3>12.2 Above the Floor</h3>
+      <p>A CAN <span class="kw may">MAY</span> set its own commercial terms for:</p>
+      <ul>
+        <li>premium services beyond baseline (enhanced identity verification, expanded data scope beyond USCDI, premium SLAs, real-time delivery, write-back capability, advanced patient matching, analytics, population health products);</li>
+        <li>prior-authorization service offerings under CMS-0057-F;</li>
+        <li>peering arrangements with other CANs (Pathway 2);</li>
+        <li>value-added integration services.</li>
+      </ul>
+
+      <h3>12.3 Inter-Network Settlement</h3>
+      <p>For patient-directed access traffic, inter-network settlement is <strong>NOT</strong>
+      appropriate.</p>
+      <p>For other traffic types (treatment, payment, operations, prior auth, payer-to-payer), CANs
+      <span class="kw may">MAY</span> negotiate commercial peering arrangements with settlement,
+      transit fees, or other terms above the federal floor.</p>
+      <div class="callout warn">
+        <span class="label">Open question</span>
+        Whether a CAN may charge a data holder per query for required HTE use cases, and whether a
+        CAN may charge a payer per query against a provider on the CAN, is not resolved in source
+        documents. See Appendix A.
+      </div>
+    </section>
+
+    <section id="accountability">
+      <h2><span class="section-anchor">13</span>Accountability</h2>
+      <p>A CAN is accountable to CMS for meeting the obligations in §§ 3–12. Persistent failure is
+      grounds for delisting from CMS-Aligned status on the same footing as failing any other
+      Framework criterion.</p>
+      <p>A CAN <span class="kw must">MUST</span> publish operational metrics (response rates, query
+      volumes, response times by use case) so apps and data holders can comparison-shop and so CMS
+      can monitor adoption and performance. Network performance metrics appear in CMS scorecards
+      (Framework criterion #19).</p>
+      <p>Outages and partial responses happen; the obligation is to meet published response standards
+      over time, not to be perfect.</p>
+    </section>
+
+    <section id="july">
+      <h2><span class="section-anchor">14</span>Framework Criterion #13 — July 4, 2026</h2>
+      <p>Framework criterion #13 requires CMS-Aligned Networks to provide or facilitate FHIR or
+      FHIR-mediated API access adhering to US Core (USCDI v3+) by <strong>July 4, 2026</strong>,
+      with related criteria for chart notes, attachments, and notifications on the same date.</p>
+      <p>A CAN <span class="kw must">MUST</span> be capable, by that date, of:</p>
+      <ul>
+        <li>responding to patient-access queries from patient-facing apps;</li>
+        <li>responding to payer queries for clinical data tied to claims from the prior 60 days;</li>
+        <li>supporting payer-to-payer flows for member transitions;</li>
+        <li>providing the foundational infrastructure for prior authorization under CMS-0057-F (compliance deadline January 2027).</li>
+      </ul>
+      <p>The substantive priorities for the July milestone are <strong>patient access</strong> and
+      <strong>payer use cases</strong>.</p>
+    </section>
+
+    <hr>
+
+    <section id="open-questions">
+      <h2>Appendix A · Open Questions</h2>
+      <p>These are gaps identified in source materials that this draft does not resolve. They are
+      flagged here so working-group attention can converge.</p>
+      <table>
+        <thead>
+          <tr><th style="width: 50px;">#</th><th>Open Question</th><th>Source</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>A1</td>
+            <td>Wire profile of the standardized RLS / federation endpoint (transport, authentication, payload schema).</td>
+            <td>Framework defers; Connectivity Pathways doc notes this is the baseline interface but the operational profile is not fixed.</td>
+          </tr>
+          <tr>
+            <td>A2</td>
+            <td>Mechanism for preventing endpoint-spamming under Pathway 4 (geo-search constraints, rate limits, query-shape rules).</td>
+            <td>Connectivity Pathways doc explicitly raises this as an unresolved question.</td>
+          </tr>
+          <tr>
+            <td>A3</td>
+            <td>Whether networks may charge data holders per query for required HTE use cases, and the same for payer-to-provider queries.</td>
+            <td>Workgroup Alternative Proposal § 2.3 — raised but not resolved by CMS in source materials.</td>
+          </tr>
+          <tr>
+            <td>A4</td>
+            <td>Definition and scope of the "on-ramp" intermediary role: separate ecosystem role or contracted vendor of the participant?</td>
+            <td>Workgroup Alternative Proposal § 2.2 — raised but not resolved.</td>
+          </tr>
+          <tr>
+            <td>A5</td>
+            <td>Operational profile for auto-registration timeline and the exact handoff between home-network onboarding and presumptive eligibility at receiving networks.</td>
+            <td>HTE Reference doc Part II — "defined timeline" referenced but not specified.</td>
+          </tr>
+          <tr>
+            <td>A6</td>
+            <td>Whether a single "Rules of the Road" document signed by all CANs is the right vehicle for cross-network operational standards, or whether criteria-based participation is sufficient.</td>
+            <td>Workgroup Alternative Proposal § 3.1 vs. HTE Reference doc Part I — disagreement; CMS chose criteria-based.</td>
+          </tr>
+          <tr>
+            <td>A7</td>
+            <td>NPD ingest/refresh cadence, schema, and authoritative trust-registry behavior.</td>
+            <td>HTE Reference doc Part II references publication but the operational profile is open.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <span class="label">Editor's note</span>
+        I'm flagging these honestly. A number of source documents speak in general terms
+        ("defined timeline", "operational profile to be specified") without the technical detail an
+        implementer needs. This draft does not fabricate that detail.
+      </div>
+    </section>
+
+    <section id="sources">
+      <h2>Appendix B · Source Documents Used to Build This Draft</h2>
+      <p>This draft was synthesized from three internal working documents and one public CMS
+      resource. No external sources were invented.</p>
+      <ul>
+        <li><strong>HTE Network Framing Combined Reference (V2 draft).</strong> Part I (the case for the HTE architecture), Part II (Rules of the Road), Part III (trust framework diagram). Internal working document.</li>
+        <li><strong>Connectivity Pathways for Discovery.</strong> Internal working document defining the four pathways.</li>
+        <li><strong>CMS Networks Workgroup — Meeting Summary and Alternative Ecosystem Proposal.</strong> Internal working document. The alternative was not adopted; cited here for gap identification only.</li>
+        <li><strong>CMS Interoperability Framework.</strong> <a href="https://www.cms.gov/health-technology-ecosystem/interoperability-framework">cms.gov/health-technology-ecosystem/interoperability-framework</a></li>
+      </ul>
+    </section>
+
+    <section id="references">
+      <h2>Appendix C · Normative References</h2>
+      <p>References below appear in source materials. None are invented.</p>
+      <ul>
+        <li><a href="https://www.rfc-editor.org/rfc/rfc2119">RFC 2119</a> — Key words for use in RFCs to Indicate Requirement Levels.</li>
+        <li><a href="https://www.healthit.gov/curesrule">ONC 21st Century Cures Act Final Rule</a>.</li>
+        <li><a href="https://www.healthit.gov/isa/united-states-core-data-interoperability-uscdi">USCDI v3</a>.</li>
+        <li><a href="https://hl7.org/fhir/us/core">HL7 FHIR US Core</a>.</li>
+        <li><a href="https://www.cms.gov/newsroom/fact-sheets/cms-advancing-interoperability-and-improving-prior-authorization-processes-final-rule-cms-0057-f">CMS-0057-F — Advancing Interoperability and Improving Prior Authorization Final Rule</a>.</li>
+        <li><a href="https://www.healthit.gov/topic/information-blocking">ONC Information Blocking</a>.</li>
+        <li><a href="https://www.ecfr.gov/current/title-45/part-171/section-171.302">45 CFR 171.302 — Fees Exception</a>.</li>
+      </ul>
+    </section>
+
+    <div class="footer">
+      <p>CMS-Aligned Network Specification · Editor's Draft · May 27, 2026 · <code>can-spec/0.1-draft</code></p>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Highlight active TOC link on scroll
+  (function () {
+    var tocLinks = Array.prototype.slice.call(document.querySelectorAll('aside ol li a'));
+    var sections = tocLinks
+      .map(function (a) {
+        var href = a.getAttribute('href');
+        if (!href || href[0] !== '#') return null;
+        var el = document.getElementById(href.slice(1));
+        return el ? { link: a, el: el } : null;
+      })
+      .filter(Boolean);
+
+    function update() {
+      var pos = window.scrollY + 120;
+      var current = sections[0];
+      for (var i = 0; i < sections.length; i++) {
+        if (sections[i].el.offsetTop <= pos) current = sections[i];
+      }
+      tocLinks.forEach(function (a) { a.classList.remove('active'); });
+      if (current) current.link.classList.add('active');
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  })();
+</script>
+</body>
+</html>
