@@ -455,7 +455,7 @@ A Network **MUST** implement record locator functionality by collaborating with 
 
 Requests to the record locator service **MUST** be initiable by patients, providers, payers, and value-based care organizations.
 
-### 17 Rules of the Road Attestation
+## 17. Rules of the Road Attestation
 
 > **Placeholder.** The Rules of the Road Attestation are being discussed in the CAN Admin/Ops group and will be input into this document, or another companion guide, when they are complete.
 
