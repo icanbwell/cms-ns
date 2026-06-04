@@ -2,9 +2,9 @@
 
 **Draft Community Specification**
 
-**Editor's Draft, June 1, 2026**
+**Editor's Draft, June 3, 2026**
 
-**This version:** `can-spec/0.1-draft`  
+**This version:** `can-spec/0.2-draft`  
 **Latest published version:** *none yet*  
 **Editor:** Liz Lewis (b.well Connected Health)  
 **Feedback:** via CMS Health Technology Ecosystem working groups
@@ -13,7 +13,7 @@
 
 ## Scope
 
-The immediate focus of this specification is the use cases currently defined in the CMS Interoperability Framework: patient access, payer access (for specific permitted activities), and provider access. It is not limited to individual access — payer and provider workflows are first-class use cases throughout. The specification has also been written with future use cases in mind, including proxy and caregiver access, and notification flows such as patient encounter notifications; where requirements for those use cases are not yet specified, this document identifies the gaps rather than foreclosing them.
+The immediate focus of this specification is the use cases currently defined in the CMS Interoperability Framework: patient access, payer access (for specific permitted activities), and provider access. Patient access is the top priority, followed by payer access and provider access. The specification has also been written with future use cases in mind, including proxy and caregiver access, and notification flows such as patient encounter notifications; where requirements for those use cases are not yet specified, this document identifies the gaps rather than foreclosing them.
 
 ---
 
@@ -57,8 +57,6 @@ A network conforms to this specification when it satisfies every **MUST** in §�
 >
 > **Camp B (direct-connect model):** The architecture should allow apps to connect on their own steam directly to all Networks. Apps may choose to outsource cross-network operations to a Network operator as a convenience, but the architecture should not require home-network gating as a structural constraint. Trust should be derivable from federal credentials alone, without a home Network intermediary in the path.
 >
-> *Josh Mandel (Slack, 6/2): "I'm not sure we want to require that every app have a 'home network' that vouches for it. I'd rather see an architecture where apps can connect on their own steam to all the networks — they can outsource the work, but the architecture shouldn't require it."*
-
 > **TODO — Working Group**
 >
 > Resolve the home-network architecture question before this spec progresses. Specifically: Is a designated home Network a structural requirement of the ecosystem, or an optional operational convenience? The answer affects §§ 4.3, 7.1, 7.2, and the Connectivity Pathways (§ 5) throughout.
@@ -110,9 +108,10 @@ Every CMS-Aligned Network **MUST**:
 7. Respond to authorized queries completely and without obstruction (§ 10).
 8. Publish to NPD (§ 11).
 9. Produce audit logs accessible to patients (§ 12).
-10. Maintain HITRUST or equivalent security validation (§ 13).
+10. Maintain HITRUST security validation (§ 13).
 11. Comply with the fees floor (§ 14).
 12. Remain accountable to CMS for ongoing compliance (§ 15).
+13. Attest to the same "rules of the road" of all other CMS-Aligned Networks (§ 17).
 
 ---
 
@@ -209,7 +208,7 @@ A Network **MUST** implement the CMS-approved patient matching logic specified i
 
 A Network **MUST** respond when a query received via any pathway in § 5 matches a patient record across any of the 27 specified combinations.
 
-> The exact field list and combination matrix are specified in the CMS Interoperability Framework, not duplicated here.
+> The exact field list and combination matrix are explained in a different specification, not duplicated here. Will link when it's available. 
 
 ---
 
@@ -229,9 +228,6 @@ A Network **MUST** accept a valid CMS-signed software statement as sufficient fo
 >
 > [UDAP](https://www.udap.org/udap-ig-b2b-health-apps) is a specific profile of RFC 7591 dynamic client registration that uses X.509 certificates issued by a trust-community CA. It addresses the same core problem as CMS-signed software statements — enabling a client to be recognized across multiple Data Holders without bilateral out-of-band agreements — but via a CA-anchored certificate chain rather than a CMS-issued JWT. Having two mechanisms that address the same problem creates implementation complexity.
 >
-> *Liz Lewis, 6/2: "Having two requirements that feel similar in some ways gives me pause."*
-> *Josh Mandel (Slack, 6/2): "CMS software statements could streamline dynamic registration for all kinds of clients without CMS needing a CA / x509 certificate issuance."*
->
 > The question of whether UDAP / X.509 should remain a required path, an optional path, or be superseded by CMS software statements as CMS registry coverage grows is unresolved and must be decided by the working group before this section is finalized.
 
 All recognized credential types reduce to RFC 7591 plumbing at the receiving authorization server. The server **SHOULD** route signature validation by issuer: CMS published JWKS for CMS-signed software statements; UDAP trust community CA chain for UDAP software statements (if UDAP is retained as a recognized path).
@@ -241,6 +237,8 @@ When a participant has been onboarded by one home Network using a recognized cre
 The timeline is set by the CMS Interoperability Framework.
 
 A Network **MUST NOT** impose duplicative trust gating on top of the federally grounded credentials. Operational coordination (abuse contacts, rate-limit, security procedures, support channels) **MAY** be coordinated.
+
+Manual registration **MAY** be supported up until the deadline of October 1, 2026, at which time all participants in the HTE **MUST** support auto or dynamic registration.
 
 ### 7.2 Presumptive Eligibility
 
@@ -288,13 +286,13 @@ Reference implementation: [Payer Initiated B2B Initial Integration](https://ican
 
 ## 10. Query / Data Exchange
 
-> **TODO (reviewer) — Jason Vogt 6/2:** § 10.3 Purpose of Use Propagation below straddles Authorization and Query / Data Exchange. The PoU declaration requirement and the code table arguably belong in Authorization (§ 9) as a gate on access; the propagation rule ("PoU MUST travel with the request to downstream systems") and the MUST NOT impose additional requirements sentence arguably belong here as query-handling rules. The subsection has been left in § 10 pending a reviewer decision on where the cut falls.
+> **TODO** § 10.3 Purpose of Use Propagation below straddles Authorization and Query / Data Exchange. The PoU declaration requirement and the code table arguably belong in Authorization (§ 9) as a gate on access; the propagation rule ("PoU MUST travel with the request to downstream systems") and the MUST NOT impose additional requirements sentence arguably belong here as query-handling rules. The subsection has been left in § 10 pending a reviewer decision on where the cut falls.
 
 ### 10.1 Respond Completely
 
 When a query is authorized, the response **MUST** include all data the responder holds for the patient, structured and unstructured, within the applicable Use Case.
 
-The minimum data scope for structured data is **USCDI v3** (or the version current at the time of the query, as specified by the CMS Interoperability Framework). Unstructured artifacts (clinical notes, scanned PDFs, imaging reports, encounter documents, faxes) **MUST** be included where they exist.
+The minimum data scope for structured data is **USCDI v3** (or the version current at the time of the query, as specified by the CMS Interoperability Framework). Unstructured artifacts (clinical notes, scanned PDFs, imaging reports, encounter documents, faxes, ambient listening recordings) **MUST** be included where they exist.
 
 USCDI v3 defines the **superset** of data elements that a Network and its Data Holders must be capable of returning — it is not a guarantee that every element is returned on every call. The actual data in any given response is a subset determined by three factors:
 
@@ -331,7 +329,7 @@ The following codes are **REQUIRED**, aligned to the approved use cases in § 10
 | `HPAYMT` | Healthcare payment | High level | Payment (including claims) |
 | `CLMATTCH` | Claim attachment | Granular | Claim attachment within payment |
 | `HOPERAT` | Healthcare operations | High level | Health care operations |
-| `HQUALIPM` | Healthcare quality improvement | Granular | Quality measure reporting within operations |
+| `HQUALIMP` | Healthcare quality improvement | Granular | Quality measure reporting within operations |
 
 Purpose of use **MUST** travel with the request to downstream systems.
 
@@ -370,7 +368,7 @@ A Network **MUST** produce audit logs for queries on its network, including:
 - for what declared purpose of use;
 - which organizations were involved.
 
-Audit logs **MUST** be organization-level at minimum.
+Audit logs **MUST** be organization-level at minimum. Audit logs **MUST** be kept for a minimum of 7 years, or longer if required by applicable law (45 CFR 164.530(j)).
 
 A Network **MUST** facilitate patient-facing audit access so patients can see, through their app, who queried their data.
 
@@ -380,11 +378,11 @@ EHRs facilitating ecosystem queries are subject to the same audit obligations as
 
 ## 13. Security
 
-A Network **MUST** maintain **HITRUST certification or equivalent** security validation, as approved by CMS.
+A Network MUST maintain HITRUST certification, scoped to the network's production environment that creates, receives, maintains, or transmits PHI on behalf of participants. This includes, at minimum, identity verification token validation, query routing, audit log generation, and patient matching reference data storage. Corporate functions that do not touch PHI are out of scope.
 
-Security certification does **NOT** replace compliance with HIPAA, the Privacy Act, or applicable state laws.
+HITRUST certification does NOT replace compliance with HIPAA, the Privacy Act, or applicable federal and state privacy and security laws.
 
-Business Associate Agreements (BAAs) **MAY** be required even where data is not directly brokered (for example, when a participant queries an RLS endpoint under Pathway 3). Networks and participants **MUST** confirm their BAA obligations under HIPAA.
+Business Associate Agreements (BAAs) MAY be required even where data is not directly brokered (for example, when a participant queries an RLS endpoint under Pathway 3). Networks and participants MUST confirm their BAA obligations under HIPAA.
 
 ---
 
@@ -440,13 +438,13 @@ A Network **SHOULD** leverage [FHIR Bulk Data Exchange](https://hl7.org/fhir/uv/
 
 ### 16.2 Chart Notes and Clinical Documents
 
-A Network **MUST** return chart notes and clinical documents — including radiology reports, scanned or faxed labs, and external specialist notes — in human-readable formats (PDF, TIFF, JPG) as FHIR attachments, as specified in USCDI v3.
+A Network **MUST** return chart notes and clinical documents — including radiology reports, scanned or faxed labs, ambient listening recordings, and external specialist notes — in human-readable formats (PDF, TIFF, JPG) as FHIR attachments, as specified in USCDI v3.
 
 ### 16.3 Appointment and Encounter Notifications
 
 A Network **MUST** provide appointment and encounter notifications for outpatient, telehealth, emergency department, and inpatient encounters using FHIR Subscriptions, where such notifications are permitted by existing law.
 
-> **Placeholder.** The specific notification profile and delivery requirements for this criterion are TBD, pending CAN role alignment by the working group.
+> **Placeholder.** The specific notification profile and delivery requirements for this criterion are TBD, pending Network role alignment by the working group.
 
 ### 16.4 Record Locator Service
 
@@ -455,7 +453,11 @@ A Network **MUST** implement record locator functionality by collaborating with 
 - reduce query load on the networks;
 - aid understanding of data completeness.
 
-Requests to the record locator service **MUST** be initiable by patients, providers, and value-based care organizations.
+Requests to the record locator service **MUST** be initiable by patients, providers, payers, and value-based care organizations.
+
+### 17 Rules of the Road Attestation
+
+> **Placeholder.** The Rules of the Road Attestation are being discussed in the CAN Admin/Ops group and will be input into this document, or another companion guide, when they are complete.
 
 ---
 
