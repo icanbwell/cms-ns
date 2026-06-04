@@ -2,7 +2,7 @@
 
 **Draft Community Specification**
 
-**Editor's Draft, May 27, 2026**
+**Editor's Draft, June 1, 2026**
 
 **This version:** `can-spec/0.1-draft`
 **Latest published version:** *none yet*
@@ -15,7 +15,7 @@
 
 This document specifies the technical and operational requirements a Health Information Network MUST meet to be recognized as a **CMS-Aligned Network (CAN)** under the CMS Health Technology Ecosystem (HTE).
 
-The specification covers the three core obligations of a CMS-Aligned Network, the four permitted connectivity pathways, patient matching, query handling, National Provider Directory (NPD) publication, audit logging, security validation, fees, and accountability.
+The specification covers the three core obligations of a CMS-Aligned Network, the three required connectivity pathways, patient matching, auto-registration via a dual-artifact model, query handling, National Provider Directory (NPD) publication, audit logging, security validation, fees, and accountability.
 
 This specification deliberately covers **network obligations only**. Trust pathways for apps, EHRs, providers, and payers are referenced where they intersect network behavior but are specified elsewhere.
 
@@ -25,7 +25,7 @@ This specification deliberately covers **network obligations only**. Trust pathw
 
 This is an editor's draft assembled from working-group materials. It has no normative force on its own. The authoritative source for CMS-Aligned status is the **CMS Interoperability Framework** published by CMS at <https://www.cms.gov/health-technology-ecosystem/interoperability-framework>. Where this document and the Framework conflict, the Framework controls.
 
-This draft is offered as a consolidated, machine-readable rendering of network-side requirements so that implementers can evaluate conformance against a single artifact. Working-group input is genuinely welcome on operational specifics (auto-registration profiles, audit standards, dispute resolution, presumptive-eligibility scope).
+This draft is offered as a consolidated rendering of network-side requirements so that implementers can evaluate conformance against a single artifact. Working-group input is welcome on operational specifics (auto-registration profiles, audit standards, dispute resolution, presumptive-eligibility scope).
 
 ---
 
@@ -33,7 +33,7 @@ This draft is offered as a consolidated, machine-readable rendering of network-s
 
 The keywords **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) when, and only when, they appear in all capitals.
 
-A network conforms to this specification when it satisfies every **MUST** in §§ 3–12 and is in good standing under § 13.
+A network conforms to this specification when it satisfies every **MUST** in §§ 3–13 and is in good standing under § 14.
 
 ---
 
@@ -57,6 +57,12 @@ A network conforms to this specification when it satisfies every **MUST** in §�
 
 **Use Case** — One of: patient access, treatment, payment, operations, prior authorization, payer-to-payer.
 
+**Dynamic Client Registration (RFC 7591)** — The IETF protocol by which an OAuth 2.0 client registers itself with an authorization server programmatically, presenting a signed software statement at the `/register` endpoint. Used by both CMS-signed and UDAP registration flows in this specification.
+
+**Software Statement (CMS-signed)** — A short-lived JWT signed by CMS asserting that a patient-facing app is listed (and in what status) in the Medicare App Library, and binding the app to its verified `jwks_uri`. Presented as the `software_statement` parameter during RFC 7591 Dynamic Client Registration.
+
+**Software Statement (UDAP)** — An X.509-anchored signed JWT per the UDAP B2B Implementation Guide, used by payers, providers, and networks acting as clients to register at a CAN data holder. Trust is validated against the trust community CA recognized by the CMS-Aligned framework.
+
 ---
 
 ## 3. Architecture Overview
@@ -68,8 +74,6 @@ The HTE architecture establishes a **federal floor** that is mandatory for parti
 A CMS-Aligned Network is **NOT** required to:
 
 - sign a common agreement with other networks;
-- peer commercially with every other CMS-Aligned Network;
-- adopt a universal routing architecture;
 - share liability with other networks;
 - adopt common pricing or governance.
 
@@ -78,15 +82,16 @@ A CMS-Aligned Network is **NOT** required to:
 Every CMS-Aligned Network MUST:
 
 1. Meet the three core obligations in § 4.
-2. Support at least one of the four connectivity pathways in § 5 for each query type it handles.
+2. Support all three connectivity pathways in § 5.
 3. Use the CMS-approved patient matching logic (§ 6).
 4. Honor auto-registration and presumptive eligibility for participants in good standing on another home CAN (§ 7).
-5. Respond to authorized queries without portal login (§ 8).
-6. Publish to NPD (§ 9).
-7. Produce audit logs accessible to patients (§ 10).
-8. Maintain HITRUST or equivalent security validation (§ 11).
-9. Comply with the fees floor (§ 12).
-10. Remain accountable to CMS for ongoing compliance (§ 13).
+5. Implement authorization per patient preferences (§ 8).
+6. Respond to authorized queries without portal login (§ 9).
+7. Publish to NPD (§ 10).
+8. Produce audit logs accessible to patients (§ 11).
+9. Maintain HITRUST or equivalent security validation (§ 12).
+10. Comply with the fees floor (§ 13).
+11. Remain accountable to CMS for ongoing compliance (§ 14).
 
 ---
 
@@ -112,17 +117,11 @@ When a tech solution presents valid Federal Trust Signals **and** is reported in
 
 The receiving CAN **MUST NOT** impose duplicative trust gating on top of the Federal Trust Signals and the home-network good-standing report. Operational coordination (abuse contacts, rate-limit coordination, ops contacts, support channels) **MAY** be required.
 
-### 4.4 Emergent Coverage
-
-Ecosystem-wide coverage emerges from every CAN meeting § 4.1–4.3. A CAN **is not** responsible for guaranteeing ecosystem-wide coverage — only for its own three obligations.
-
-A CAN **MAY** fulfill its obligations using any combination of the pathways in § 5.
-
 ---
 
 ## 5. Connectivity Pathways
 
-A CAN **MUST** support at least one of the following four pathways for each query type it handles. A CAN **MAY** support more than one.
+A CAN **MUST** support all three of the following pathways.
 
 ### 5.1 Pathway 1 — Intranetwork
 
@@ -135,36 +134,24 @@ The CAN serves queries against data holders that have contracted directly with t
 **Conformance:**
 - The CAN **MUST** respond to authorized queries for any data holder on the network across applicable use cases.
 
-### 5.2 Pathway 2 — Peering with a Partner Network
+### 5.2 Pathway 2 — RLS Network Search ($match)
 
-Bilateral, network-to-network exchange that goes deeper than the baseline federation interface in Pathway 3.
-
-**Assumptions:**
-- Voluntary, commercial, and bilateral.
-- Not required by CMS-Aligned status.
-- Both networks remain individually responsible for their conduct. No shared liability pool.
-- The peering contract governs settlement, transit, and SLAs.
-
-**Conformance:**
-- Pathway 2 **MAY** be used by a CAN to satisfy its obligations in § 4 but **MUST NOT** be the *only* available pathway, because peering is voluntary and a partner network can withdraw.
-
-### 5.3 Pathway 3 — Federated FHIR Queries via CMS-Aligned RLS Endpoints
-
-The standardized broadcast/discovery path. Patient discovery and provider discovery via the federation interface.
+Discovery uses `$match` against the published RLS endpoints of other CMS-Aligned Networks. Data retrieval may use either **federated FHIR** (each responder serves its own data directly) or **brokered FHIR** (a network broker aggregates and returns data on behalf of multiple endpoints). Both retrieval modes are conformant.
 
 **Assumptions:**
 - Every CAN exposes a standardized RLS endpoint at a known address listed in NPD.
-- The endpoint accepts authenticated requests from other CMS-Aligned Networks.
+- The endpoint accepts authenticated `$match` requests from other CMS-Aligned Networks.
 - Common patient matching (§ 6) applies.
 
 **Conformance:**
 - A CAN **MUST** expose a standardized RLS endpoint at the address published in NPD.
-- A CAN **MUST** accept authenticated requests from other CMS-Aligned Networks on this endpoint.
-- A CAN **MUST** apply the CMS patient matching rule (§ 6) to all queries received via Pathway 3.
+- A CAN **MUST** accept authenticated `$match` requests from other CMS-Aligned Networks on this endpoint.
+- A CAN **MUST** apply the CMS patient matching rule (§ 6) to all queries received via Pathway 2.
+- Data retrieval **MAY** use federated FHIR or brokered FHIR; both are conformant.
 
-> **Note.** The exact wire profile of the RLS endpoint, the federation transport, and the authentication scheme between CANs are intentionally left to the CMS Interoperability Framework and the working-group operational profiles. This specification fixes the *obligation* to expose and accept; it does not (yet) fix the transport profile. **Open question — see Appendix A.**
+> **Note.** The exact wire profile of the RLS endpoint, the federation transport, and the authentication scheme between CANs are intentionally left to the CMS Interoperability Framework and the working-group operational profiles. The wire profile for brokered FHIR retrieval is an open question — see Appendix A.
 
-### 5.4 Pathway 4 — Targeted Queries Against NPD
+### 5.3 Pathway 3 — Targeted Queries Against NPD
 
 The connector queries a specific endpoint by NPI (or equivalent identifier) listed in NPD, when there is evidence the patient has data at that endpoint (e.g., a payer that received a claim from a specific provider).
 
@@ -192,7 +179,14 @@ A CAN **MUST** respond when a query received via any pathway in § 5 matches a p
 
 ### 7.1 Auto-Registration
 
-When a tech solution holds the trust signals appropriate to its actor type (see § 2 "Federal Trust Signal"), holds an X.509 credential, and has been onboarded by one home CAN, every other CAN **MUST** register that tech solution on a defined timeline without redundant onboarding.
+Registration at any CAN data holder follows [RFC 7591 Dynamic Client Registration](https://www.rfc-editor.org/rfc/rfc7591), with a signed software statement presented at the standard `/register` endpoint as the `software_statement` parameter. Two artifact types are recognized and **MUST** be accepted:
+
+1. **CMS-signed software statement** — **REQUIRED** for patient-facing apps registered in the Medicare App Library. A short-lived JWT (e.g., 24-hour TTL) signed by CMS, asserting Library status (active / suspended / delisted) and binding to the app's verified `jwks_uri`. Replaces per-network re-vetting of patient-facing apps. See Josh Mandel, "Software Statements for the Medicare App Library," May 26, 2026.
+2. **UDAP software statement** — **REQUIRED** for all other participant types (payers, providers, networks acting as clients). An X.509-anchored signed JWT per the [UDAP B2B Implementation Guide](https://www.udap.org/udap-ig-b2b-health-apps). Trust validated against the trust community CA recognized by the CMS-Aligned framework.
+
+Both artifact types reduce to RFC 7591 plumbing at the receiving authorization server. The server **SHOULD** route signature validation by issuer: CMS published JWKS for the CMS-signed artifact; UDAP trust community CA chain for the UDAP artifact.
+
+When a participant has been onboarded by one home CAN using the applicable artifact type, every other CAN **MUST** register that participant on a defined timeline without redundant onboarding.
 
 The timeline is set by the CMS Interoperability Framework.
 
@@ -214,15 +208,21 @@ A CAN **MAY** suspend presumptive eligibility for cause, including operational a
 
 ---
 
-## 8. Query Handling
+## 8. Authorization
 
-### 8.1 No Portal Login
+> **Placeholder.** Authorization requirements — including patient consent, delegated authorization, and app-level permission scopes — are under active development by the Patient Preferences workgroup. This section will be populated when that workgroup publishes its recommendations.
+
+---
+
+## 9. Query Handling
+
+### 9.1 No Portal Login
 
 A CAN, and every EHR or data holder it routes to, **MUST** respond to authorized queries from properly credentialed parties without requiring portal login as a precondition.
 
 For patient-directed access, IAL2 identity verification through a CMS-approved CSP (e.g., CLEAR, ID.me) plus app authorization is sufficient.
 
-### 8.2 Respond Completely
+### 9.2 Respond Completely
 
 When a query is authorized, the response **MUST** include all data the responder holds for the patient, structured and unstructured, within the applicable Use Case.
 
@@ -230,27 +230,38 @@ The minimum data scope for structured data is **USCDI v3** (or the version curre
 
 > No use case becomes a dead end.
 
-### 8.3 Use Case Coverage
+### 9.3 Use Case Coverage
 
 A CAN **MUST** respond to queries from the actor categories that apply to the use cases its participants engage in:
 
 - patients seeking their own records;
 - providers requesting clinical and claims data for treatment;
 - payers (where applicable) requesting clinical data supporting claims from the last 60 days;
-- payer-to-payer flows for member transitions;
+- payers querying for quality measure reporting;
 - prior authorization queries (subject to CMS-0057-F deadlines).
 
 If a network's participants engage in a use case, the network **MUST** support queries for that use case.
 
-### 8.4 Purpose of Use Propagation
+### 9.4 Purpose of Use Propagation
 
 Every data request **MUST** declare why the data is being accessed. A CAN **MUST** support the HL7 Purpose of Use code set and apply the correct disclosure rules to each category.
+
+The following codes are **REQUIRED**, aligned to the approved use cases in § 9.3:
+
+| Code | Display | Level | Use case |
+|---|---|---|---|
+| `PATRQT` | Patient request | Granular | Patient access |
+| `TREAT` | Treatment | High level | Treatment |
+| `HPAYMT` | Healthcare payment | High level | Payment (including claims) |
+| `CLMATTCH` | Claim attachment | Granular | Claim attachment within payment |
+| `HOPERAT` | Healthcare operations | High level | Health care operations |
+| `HQUALIPM` | Healthcare quality improvement | Granular | Quality measure reporting within operations |
 
 Purpose of use **MUST** travel with the request to downstream systems.
 
 When the requesting party is trusted and the purpose of use is properly declared, a CAN and its participants **MUST NOT** impose additional authorization requirements on top.
 
-### 8.5 Patient-Contributed Data
+### 9.5 Patient-Contributed Data
 
 A CAN **MUST** accept patient-contributed data (patient-reported outcomes, home device readings, symptom history, lifestyle data, notes) from patient-facing apps when the patient chooses to share, and **MUST** pass that information through to the appropriate data holder for inclusion in patient records or care use.
 
@@ -258,14 +269,15 @@ Patient choice governs whether patient-contributed data flows. Nothing in this s
 
 ---
 
-## 9. National Provider Directory Publication
+## 10. National Provider Directory Publication
 
 A CAN **MUST** publish to NPD:
 
 - its onboarded participants (apps, providers, payers, delegated tech solutions);
-- its participants' endpoints in a form that supports Pathway 4 (targeted query by identifier);
-- its inter-network peering connections;
-- usage metrics by participant and by use case.
+- its participants' endpoints in a form that supports Pathway 3 (targeted query by identifier);
+- its inter-network connections;
+- usage metrics by participant and by use case;
+- trust-anchor metadata required for UDAP validation, including the trust community CA URL and any intermediate CA certificates recognized by the CMS-Aligned framework, so that receiving networks can validate UDAP software statements without bilateral out-of-band coordination.
 
 A CAN **MUST** ingest and publish updates routinely. The ingest/refresh cadence is specified by the CMS Interoperability Framework.
 
@@ -273,7 +285,7 @@ NPD **MUST** also be queryable by any CAN, auditor, or participant to confirm an
 
 ---
 
-## 10. Audit Logging
+## 11. Audit Logging
 
 A CAN **MUST** produce audit logs for queries on its network, including:
 
@@ -290,34 +302,34 @@ EHRs facilitating ecosystem queries are subject to the same audit obligations as
 
 ---
 
-## 11. Security
+## 12. Security
 
 A CAN **MUST** maintain **HITRUST certification or equivalent** security validation, as approved by CMS.
 
 Security certification does **NOT** replace compliance with HIPAA, the Privacy Act, or applicable state laws.
 
-Business Associate Agreements (BAAs) **MAY** be required even where data is not directly brokered (for example, when a participant queries an RLS endpoint under Pathway 4). Networks and participants **MUST** confirm their BAA obligations under HIPAA.
+Business Associate Agreements (BAAs) **MAY** be required even where data is not directly brokered (for example, when a participant queries an RLS endpoint under Pathway 3). Networks and participants **MUST** confirm their BAA obligations under HIPAA.
 
 ---
 
-## 12. Fees and Economics
+## 13. Fees and Economics
 
-### 12.1 Patient-Directed Access
+### 13.1 Patient-Directed Access
 
 A CAN **MUST NOT** structure fees in a way that gates a patient's federal right to access their own data.
 
 The Fees exception at [45 CFR 171.302](https://www.ecfr.gov/current/title-45/part-171/section-171.302) and the ONC information blocking framework establish this floor. Cost recovery is permitted; platform fees structured to defeat patient access are not.
 
-### 12.2 Above the Floor
+### 13.2 Above the Floor
 
 A CAN **MAY** set its own commercial terms for:
 
 - premium services beyond baseline (enhanced identity verification, expanded data scope beyond USCDI, premium SLAs, real-time delivery, write-back capability, advanced patient matching, analytics, population health products);
 - prior-authorization service offerings under CMS-0057-F;
-- peering arrangements with other CANs (Pathway 2);
+- voluntary commercial peering arrangements with other CANs;
 - value-added integration services.
 
-### 12.3 Inter-Network Settlement
+### 13.3 Inter-Network Settlement
 
 For patient-directed access traffic, inter-network settlement is **NOT** appropriate.
 
@@ -327,9 +339,9 @@ For other traffic types (treatment, payment, operations, prior auth, payer-to-pa
 
 ---
 
-## 13. Accountability
+## 14. Accountability
 
-A CAN is accountable to CMS for meeting the obligations in §§ 3–12. Persistent failure is grounds for delisting from CMS-Aligned status on the same footing as failing any other Framework criterion.
+A CAN is accountable to CMS for meeting the obligations in §§ 3–13. Persistent failure is grounds for delisting from CMS-Aligned status on the same footing as failing any other Framework criterion.
 
 A CAN **MUST** publish operational metrics (response rates, query volumes, response times by use case) so apps and data holders can comparison-shop and so CMS can monitor adoption and performance. Network performance metrics appear in CMS scorecards (Framework criterion #19).
 
@@ -337,18 +349,37 @@ Outages and partial responses happen; the obligation is to meet published respon
 
 ---
 
-## 14. Framework Criterion #13 — July 4, 2026
+## 15. July 4, 2026 Framework Requirements
 
-Framework criterion #13 requires CMS-Aligned Networks to provide or facilitate FHIR or FHIR-mediated API access adhering to US Core (USCDI v3+) by **July 4, 2026**, with related criteria for chart notes, attachments, and notifications on the same date.
+By **July 4, 2026**, a CAN **MUST** satisfy all four requirements below, as specified in the CMS Interoperability Framework.
 
-A CAN **MUST** be capable, by that date, of:
+### 15.1 FHIR API Access
 
-- responding to patient-access queries from patient-facing apps;
-- responding to payer queries for clinical data tied to claims from the prior 60 days;
-- supporting payer-to-payer flows for member transitions;
-- providing the foundational infrastructure for prior authorization under CMS-0057-F (compliance deadline January 2027).
+A CAN **MUST** provide or facilitate access to data using FHIR APIs that adhere to the [HL7 FHIR US Core Implementation Guide](https://hl7.org/fhir/us/core), including:
 
-The substantive priorities for the July milestone are **patient access** and **payer use cases**.
+- a complete and valid FHIR Capability Statement;
+- USCDI v3 (or later) data elements with terminology compliance — laboratories coded in LOINC, medications in RxNorm, conditions in SNOMED CT.
+
+A CAN **SHOULD** leverage [FHIR Bulk Data Exchange](https://hl7.org/fhir/uv/bulkdata) to reduce stress on existing systems and enable the exchange of full data records.
+
+### 15.2 Chart Notes and Clinical Documents
+
+A CAN **MUST** return chart notes and clinical documents — including radiology reports, scanned or faxed labs, and external specialist notes — in human-readable formats (PDF, TIFF, JPG) as FHIR attachments, as specified in USCDI v3.
+
+### 15.3 Appointment and Encounter Notifications
+
+A CAN **MUST** provide appointment and encounter notifications for outpatient, telehealth, emergency department, and inpatient encounters using FHIR Subscriptions, where such notifications are permitted by existing law.
+
+> **Placeholder.** The specific notification profile and delivery requirements for this criterion are TBD, pending CAN role alignment by the working group.
+
+### 15.4 Record Locator Service
+
+A CAN **MUST** implement record locator functionality by collaborating with CMS to determine efficient and timely models that:
+
+- reduce query load on the networks;
+- aid understanding of data completeness.
+
+Requests to the record locator service **MUST** be initiable by patients, providers, and value-based care organizations.
 
 ---
 
@@ -358,15 +389,16 @@ These are gaps identified in source materials that this draft does not resolve. 
 
 | # | Open Question | Source |
 |---|---|---|
-| A1 | Wire profile of the standardized RLS / federation endpoint (transport, authentication, payload schema). | Framework defers; Connectivity Pathways doc notes this is the baseline interface but the operational profile is not fixed. |
-| A2 | Mechanism for preventing endpoint-spamming under Pathway 4 (geo-search constraints, rate limits, query-shape rules). | Connectivity Pathways doc explicitly raises this as an unresolved question. |
+| A1 | Wire profile of the standardized RLS / federation endpoint (transport, authentication, payload schema for `$match` requests and responses). | Framework defers; Connectivity Pathways doc notes this is the baseline interface but the operational profile is not fixed. |
+| A1b | Wire profile for brokered FHIR retrieval under Pathway 2 — how a network broker aggregates responses from multiple RLS endpoints and returns them to the requesting CAN (payload shape, error handling, partial-response semantics). | Introduced by the shift from federated-only to dual retrieval modes in Pathway 2; not yet specified. |
+| A2 | Mechanism for preventing endpoint-spamming under Pathway 3 (geo-search constraints, rate limits, query-shape rules). | Connectivity Pathways doc explicitly raises this as an unresolved question. |
 | A3 | Whether networks may charge data holders per query for required HTE use cases, and the same for payer-to-provider queries. | Workgroup Alternative Proposal § 2.3 — raised but not resolved by CMS in source materials. |
 | A4 | Definition and scope of the "on-ramp" intermediary role: separate ecosystem role or contracted vendor of the participant? | Workgroup Alternative Proposal § 2.2 — raised but not resolved. |
 | A5 | Operational profile for auto-registration timeline and the exact handoff between home-network onboarding and presumptive eligibility at receiving networks. | HTE Reference doc Part II — "defined timeline" referenced but not specified. |
-| A6 | Whether a single "Rules of the Road" document signed by all CANs is the right vehicle for cross-network operational standards, or whether criteria-based participation is sufficient. | Workgroup Alternative Proposal § 3.1 vs. HTE Reference doc Part I — these documents disagree, and CMS has chosen criteria-based participation; the gap is whether that choice produces enough operational uniformity. |
+| A6 | Whether a single "Rules of the Road" document signed by all CANs is the right vehicle for cross-network operational standards, or whether criteria-based participation is sufficient. | Workgroup Alternative Proposal § 3.1 vs. HTE Reference doc Part I — disagreement; CMS chose criteria-based. |
 | A7 | NPD ingest/refresh cadence, schema, and authoritative trust-registry behavior. | HTE Reference doc Part II references publication but the operational profile is open. |
 
-**I'm flagging these honestly.** A number of source documents speak in general terms ("defined timeline", "operational profile to be specified") without the technical detail an implementer needs. This draft does not fabricate that detail.
+> **Editor's note.** I'm flagging these honestly. A number of source documents speak in general terms ("defined timeline", "operational profile to be specified") without the technical detail an implementer needs. This draft does not fabricate that detail.
 
 ---
 
@@ -375,7 +407,7 @@ These are gaps identified in source materials that this draft does not resolve. 
 This draft was synthesized from three internal working documents and one public CMS resource. No external sources were invented.
 
 - **HTE Network Framing Combined Reference (V2 draft).** Part I (the case for the HTE architecture), Part II (Rules of the Road), Part III (trust framework diagram). Internal working document.
-- **Connectivity Pathways for Discovery.** Internal working document defining the four pathways.
+- **Connectivity Pathways for Discovery.** Internal working document defining the original four pathways; this spec consolidates to three required pathways.
 - **CMS Networks Workgroup — Meeting Summary and Alternative Ecosystem Proposal.** Internal working document. The alternative was not adopted; cited here for gap identification only.
 - **CMS Interoperability Framework.** <https://www.cms.gov/health-technology-ecosystem/interoperability-framework>
 
@@ -386,6 +418,8 @@ This draft was synthesized from three internal working documents and one public 
 References below appear in source materials. None are invented.
 
 - [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) — Key words for use in RFCs to Indicate Requirement Levels.
+- [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) — OAuth 2.0 Dynamic Client Registration Protocol.
+- [UDAP B2B Implementation Guide](https://www.udap.org/udap-ig-b2b-health-apps) — Unified Data Access Profiles for B2B Health App Authorization; defines the X.509-anchored software statement used by payers, providers, and networks.
 - [ONC 21st Century Cures Act Final Rule](https://www.healthit.gov/curesrule).
 - [USCDI v3](https://www.healthit.gov/isa/united-states-core-data-interoperability-uscdi).
 - [HL7 FHIR US Core](https://hl7.org/fhir/us/core).
