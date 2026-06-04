@@ -1,0 +1,27 @@
+name: Spec sync check
+
+# can-spec.md (Markdown source) and index.html (rendered spec) are maintained
+# by hand with no generator, so they drift apart silently. This job fails a PR
+# when their section structure no longer matches, catching the drift before it
+# reaches main.
+
+on:
+  pull_request:
+    paths:
+      - "can-spec.md"
+      - "index.html"
+      - "tools/check_spec_sync.py"
+      - ".github/workflows/spec-sync.yml"
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify can-spec.md and index.html are in sync
+        run: python3 tools/check_spec_sync.py
