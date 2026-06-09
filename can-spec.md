@@ -282,6 +282,18 @@ Reference implementation: [Payer Initiated B2B Initial Integration](https://ican
 
 > **Placeholder.** Authorization requirements — including patient consent, delegated authorization, and app-level permission scopes — are under active development by the Patient Preferences workgroup. This section will be populated when that workgroup publishes its recommendations.
 
+### On Authorization
+
+- A data holder responding to an IAS request that contains an `id_token` **SHALL** verify the relationship between the audience (`aud`) of the `id_token` and the presenting application. *(Specifics to be added depending on cert vs. software statements route choice.)*
+- The data holder **SHALL NOT** issue an access token if the incoming `id_token` contains an `auth_time` claim indicating the original user authentication occurred more than 300 seconds prior to the current request.
+- To prevent replay attacks, the data holder **SHALL** validate the identifier of the `id_token` for uniqueness. The data holder **SHALL NOT** accept an `id_token` if the combination of the JWT ID (`jti`) and Issuer (`iss`) claims has already been processed within the token's validity window.
+
+### Access Tokens and Refresh Tokens
+
+1. Access tokens issued by a data holder **SHALL** support renewal via refresh tokens on a rolling 90-day basis.
+2. The rolling 90-day expiration window **SHALL** reset upon each successful token refresh.
+3. Access tokens **SHALL** have a valid lifetime no greater than one hour.
+
 ---
 
 ## 10. Query / Data Exchange
@@ -475,8 +487,6 @@ These are gaps identified in source materials that this draft does not resolve. 
 | A5 | Operational profile for auto-registration timeline and the exact handoff between home-network onboarding and presumptive eligibility at receiving networks. | HTE Reference doc Part II — "defined timeline" referenced but not specified. |
 | A6 | Whether a single "Rules of the Road" document signed by all Networks is the right vehicle for cross-network operational standards, or whether criteria-based participation is sufficient. | Workgroup Alternative Proposal § 3.1 vs. HTE Reference doc Part I — disagreement; CMS chose criteria-based. |
 | A7 | NPD ingest/refresh cadence, schema, and authoritative trust-registry behavior. | HTE Reference doc Part II references publication but the operational profile is open. |
-
-**I'm flagging these honestly.** A number of source documents speak in general terms ("defined timeline", "operational profile to be specified") without the technical detail an implementer needs. This draft does not fabricate that detail.
 
 ---
 
