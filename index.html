@@ -628,6 +628,20 @@
         app-level permission scopes — are under active development by the Patient Preferences
         workgroup. This section will be populated when that workgroup publishes its recommendations.
       </div>
+
+      <h3>On Authorization</h3>
+      <ul>
+        <li>A data holder responding to an IAS request that contains an <code>id_token</code> <span class="kw shall">SHALL</span> verify the relationship between the audience (<code>aud</code>) of the <code>id_token</code> and the presenting application. <em>(Specifics to be added depending on cert vs. software statements route choice.)</em></li>
+        <li>The data holder <span class="kw shall">SHALL NOT</span> issue an access token if the incoming <code>id_token</code> contains an <code>auth_time</code> claim indicating the original user authentication occurred more than 300 seconds prior to the current request.</li>
+        <li>To prevent replay attacks, the data holder <span class="kw shall">SHALL</span> validate the identifier of the <code>id_token</code> for uniqueness. The data holder <span class="kw shall">SHALL NOT</span> accept an <code>id_token</code> if the combination of the JWT ID (<code>jti</code>) and Issuer (<code>iss</code>) claims has already been processed within the token's validity window.</li>
+      </ul>
+
+      <h3>Access Tokens and Refresh Tokens</h3>
+      <ol>
+        <li>Access tokens issued by a data holder <span class="kw shall">SHALL</span> support renewal via refresh tokens on a rolling 90-day basis.</li>
+        <li>The rolling 90-day expiration window <span class="kw shall">SHALL</span> reset upon each successful token refresh.</li>
+        <li>Access tokens <span class="kw shall">SHALL</span> have a valid lifetime no greater than one hour.</li>
+      </ol>
     </section>
 
     <section id="query">
@@ -900,12 +914,6 @@
           </tr>
         </tbody>
       </table>
-      <div class="callout warn">
-        <span class="label">Editor's note</span>
-        I'm flagging these honestly. A number of source documents speak in general terms
-        ("defined timeline", "operational profile to be specified") without the technical detail an
-        implementer needs. This draft does not fabricate that detail.
-      </div>
     </section>
 
     <section id="sources">
