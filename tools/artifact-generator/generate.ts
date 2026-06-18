@@ -716,6 +716,17 @@ writePage(
 // Pages for the record-location-and-data-access write-up
 // =====================================================================
 const SAS_CSP_CLIENT = "https://issuer.beta-exchange.example"; // the service's identity at the CSP
+const SAS_APP_CLIENT = "sas-bp-buddy-3f81";
+const launchValue = "lch_" + opaque().slice(0, 16);
+const launchClientAssertion = await new SignJWT({})
+  .setProtectedHeader({ alg: "RS384", kid: appKeyA.jwk.kid, typ: "JWT" })
+  .setIssuer(SAS_APP_CLIENT)
+  .setSubject(SAS_APP_CLIENT)
+  .setAudience(`${TICKET_ISSUER}/token`)
+  .setIssuedAt(now)
+  .setExpirationTime(now + 300)
+  .setJti(uuid())
+  .sign(appKeyA.privateKey);
 
 writePage(
   "csp-sign-in",
@@ -742,25 +753,53 @@ writePage(
 writePage(
   "authorization-step",
   "Opening the authorization step",
-  "The app opens a standard SMART App Launch code flow at the shared authorization service, passing Maria's id_token as a hint. The service then re-authenticates her silently at the CSP and receives a fresh id_token audienced to itself.",
+  "The app exchanges Maria's app-audienced CSP id_token for a SMART launch value, then opens a standard SMART App Launch code flow at the shared authorization service. Once the SMART flow begins, the service decides whether to accept the launch context, perform local step-up, or re-authenticate her at the CSP and receive a fresh id_token audienced to itself.",
   [
-    httpMd("The app's authorize request at the service (browser redirect)", [
+    httpMd(
+      "External identity evidence token exchange (back channel)",
+      [`POST ${TICKET_ISSUER}/token HTTP/1.1`, "Host: issuer.beta-exchange.example", "Content-Type: application/x-www-form-urlencoded"],
+      [
+        `client_id=${encodeURIComponent(SAS_APP_CLIENT)}`,
+        "client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+        `client_assertion=${launchClientAssertion.slice(0, 60)}...`,
+        "grant_type=urn:ietf:params:oauth:grant-type:token-exchange",
+        "subject_token_type=urn:ietf:params:oauth:token-type:id_token",
+        `subject_token=${idToken.slice(0, 60)}...`,
+        "requested_token_type=urn:smart:params:oauth:token-type:launch",
+        `resource=${encodeURIComponent(`${TICKET_ISSUER}/authorize`)}`,
+      ].join("&\n"),
+      "text",
+    ),
+    httpMd(
+      "Launch value response",
+      ["HTTP/1.1 200 OK", "Content-Type: application/json"],
+      {
+        access_token: launchValue,
+        issued_token_type: "urn:smart:params:oauth:token-type:launch",
+        token_type: "N_A",
+        expires_in: 300,
+      },
+    ),
+    httpMd("The app's authorize request using the launch value (browser redirect)", [
       `GET ${TICKET_ISSUER}/authorize?response_type=code HTTP/1.1`,
-      "  &client_id=sas-bp-buddy-3f81",
+      `  &client_id=${SAS_APP_CLIENT}`,
       "  &redirect_uri=https://bpbuddy.example/callback",
-      "  &scope=permission_ticket+patient%2FObservation.rs+offline_access",
+      "  &scope=launch+permission_ticket+patient%2FObservation.rs+offline_access",
       "  &code_challenge=E9Mt... &code_challenge_method=S256 &state=x7Hq",
-      `  &id_token_hint=${idToken.slice(0, 40)}...`,
+      `  &launch=${launchValue}`,
     ]),
-    httpMd("The service's silent re-authentication at the CSP (no screen if Maria's CSP session is live)", [
+    httpMd("Local step-up option inside the SMART authorization flow", [
+      "HTTP/1.1 200 OK",
+      "Content-Type: text/html",
+    ], "Maria confirms a one-time code sent to a phone number or email address verified in the CSP evidence.", "text"),
+    httpMd("CSP re-authentication option inside the SMART authorization flow", [
       `GET ${CSP_ISS}/authorize?response_type=code&prompt=none HTTP/1.1`,
       "  &client_id=" + encodeURIComponent(SAS_CSP_CLIENT),
       "  &redirect_uri=https://issuer.beta-exchange.example/csp/callback",
       "  &scope=openid",
-      `  &id_token_hint=${idToken.slice(0, 40)}...`,
     ]),
     jwtMd("Fresh id_token from the silent re-auth: same person, new auth event, aud is now the service", ticketEvidence),
-    "The lighter option skips the silent re-auth: the service accepts the app-passed id_token itself as the sign-in. That token is verifiable and audience-bound to the app, and it proves the app holds a recent assertion about Maria, not that Maria is present in this browser.",
+    "After the launch-based SMART authorization request starts, record location, consent, and permission-ticket issuance proceed the same way no matter which ceremony the service chooses.",
   ],
 );
 

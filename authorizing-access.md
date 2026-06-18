@@ -167,6 +167,8 @@ sequenceDiagram
 
 ### Authorizing and locating records
 
+At this point BP Buddy has an id_token from Maria's CSP whose audience is the app. To keep the app out of the authorization service's ceremony choices, the app always uses the [External Identity Evidence Launch](external-identity-evidence-launch.md) prefix: it exchanges the app-audienced CSP token for a short-lived opaque SMART `launch` value, then starts the normal SMART authorization request with that value. During the SMART authorization flow, the shared authorization service decides whether to accept the launch context, step up with a phone or email check, or re-authenticate at the CSP.
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -175,9 +177,16 @@ sequenceDiagram
     participant CSP as IAL2 CSP
     participant SAS as Shared authorization service
 
-    App->>SAS: opens the authorization step<br/>(code flow with PKCE, carrying the id_token as a hint)
-    SAS->>CSP: silent re-authentication via id_token_hint<br/>(no screen if Maria's CSP session is live)
-    CSP-->>SAS: fresh id_token, audienced to the service
+    App->>SAS: token exchange with CSP id_token<br/>(back channel)
+    SAS->>SAS: validate CSP evidence<br/>against trust and assurance policy
+    SAS-->>App: opaque SMART launch value
+    App->>SAS: starts SMART authorization<br/>(code flow with PKCE, launch=value)
+    alt launch context accepted or local step-up
+        SAS->>Maria: local step-up if needed<br/>(for example, OTP to verified channel)
+    else CSP re-authentication
+        SAS->>CSP: OIDC authentication<br/>(silent if possible, interactive if needed)
+        CSP-->>SAS: fresh id_token, audienced to the service
+    end
     SAS->>SAS: record location lookup: its own network,<br/>plus peer networks it has agreements with
     SAS->>Maria: shows the matches<br/>Maria narrows sites and data categories
     SAS-->>App: code, exchanged (PKCE verifier + client<br/>authentication JWT) for the token response:<br/>per-site permission tickets + endpoint hints
@@ -185,13 +194,13 @@ sequenceDiagram
 
 *Example artifacts: [opening the authorization step](example-artifacts/authorization-step.md), [record location at a peer network](example-artifacts/peer-record-location.md), and [the token response carrying per-site tickets](example-artifacts/issuance-token-response.md).*
 
-1. The app opens the authorization step at the shared authorization service (a standard SMART App Launch code flow with PKCE), already holding Maria's id_token, which it passes as a hint. The request also carries the app's Library-backed identity, so the service knows exactly which app is asking without any prior relationship.
-2. The service performs OIDC authentication with the CSP, sending Maria's browser there with `prompt=none` and the app-provided id_token as the `id_token_hint`. The CSP can answer one of two ways: recognize its own session and silently issue a fresh id_token audienced to the service, or return an error meaning "ask again with prompts allowed," at which point the CSP runs whatever interactive checks it requires. How the CSP recognizes a returning user is its business, and there is never re-proofing.
+1. The app opens the authorization step at the shared authorization service (a standard SMART App Launch code flow with PKCE). It first makes a back-channel token exchange at the service's token endpoint, presenting Maria's CSP id_token as the `subject_token` and authenticating as the registered SMART client. The service validates the evidence and returns a short-lived opaque `launch` value. The app then sends the ordinary SMART authorization request with the `launch` scope and `launch=<value>`, without putting the CSP token into any front-channel parameter.
+2. The service chooses the ceremony inside the SMART authorization flow. It can accept the launch context directly, ask Maria for local step-up using a channel verified in the CSP evidence, or send Maria's browser to the CSP as its own relying party. If it uses CSP re-authentication, the CSP can recognize an existing session and silently issue a fresh id_token audienced to the service, or it can require interactive checks. How the CSP recognizes a returning user is its business, and there is never re-proofing.
 3. The service looks up where Maria has records: its own network's data holders, plus peer networks it has agreements with. Record location happens before the app is issued any access token, so the service can show Maria the actual list of sites holding her records before anything is shared.
 4. Maria sees the matches and narrows them: which sites, which data categories. Sites she leaves out are never disclosed to the app, either as hints or as tickets. Service-side selection is the only placement where "the app never learns I was ever there" is achievable.
 5. Maria is redirected back to the app with a code, and the app exchanges it (PKCE verifier plus its client authentication JWT) for the token response, which carries one signed permission ticket per chosen site plus endpoint hints ([SMART Permission Tickets, proposal 003](https://build.fhir.org/ig/jmandel/smart-permission-tickets-wip/proposal-003-smart-launch-issuance.html)). Each ticket binds the grant: Maria's demographics, her identity evidence, the authorized scope, the site it is for, and the app's key.
 
-A variant some services may accept: skipping the re-authentication and taking the app-passed id_token itself as the sign-in. That token is automatically verifiable and audience-bound to the app, and accepting it is the same trust model the client-assertion flow runs on. It is an honest option provided it is named for what it is: it proves the app holds a recent assertion about Maria, not that Maria is present in this browser. A service accepting it should say so rather than implying a separation it does not deliver.
+After the SMART authorization request starts, record location, consent, and permission-ticket issuance proceed the same way no matter which ceremony the service chooses.
 
 ### Tokens from each data holder
 
@@ -294,4 +303,3 @@ Rows are criteria; the text in each cell describes what that path looks like fro
 <tr><th>How coverage grows</th><td class="g">the service adds peer networks; Maria's stops shrink toward one</td><td class="y">the app integrates each network's record location itself</td></tr>
 </tbody>
 </table>
-

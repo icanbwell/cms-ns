@@ -23,10 +23,10 @@ Content-Type: application/json
 
 ```json
 {
-  "access_token": "0cCfy2Pr664Z51vQ1aPFjxnEumgCSenh",
+  "access_token": "hC8hybQhEpeekRJzJ222LZXxLdqh4gNB",
   "token_type": "Bearer",
   "expires_in": 300,
-  "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImVOdTFWdEl3R3hQVkZPOF... (decoded below)"
+  "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJYakk5SmRKUEt5ZURURn... (decoded below)"
 }
 ```
 
@@ -35,7 +35,7 @@ Content-Type: application/json
 **id_token: aud is the app's Library software_id** (compact JWS, really signed):
 
 ```
-eyJhbGciOiJSUzI1NiIsImtpZCI6ImVOdTFWdEl3R3hQVkZPOFJXdkEzVDVSam1MMnl0TzdaQnNHaU5KQkRQTE0iLCJ0eXAiOiJKV1QifQ.eyJpZGVudGl0eV9hc3N1cmFuY2VfbGV2ZWwiOjIsImF1dGhfdGltZSI6MTc4MTI3MTg5MywiZ2l2ZW5fbmFtZSI6Ik1hcmlhIiwiZmFtaWx5X25hbWUiOiJMb3BleiIsImJpcnRoZGF0ZSI6IjE5NjItMDMtMTUiLCJhZGRyZXNzIjp7InN0cmVldF9hZGRyZXNzIjoiNDE4IEFsZGVyIENvdXJ0IiwibG9jYWxpdHkiOiJSaXZlcnNpZGUiLCJyZWdpb24iOiJDQSIsInBvc3RhbF9jb2RlIjoiOTI1MDEiLCJjb3VudHJ5IjoiVVMifSwic3NuX2l0aW5fc2hvcnQiOiI0MzIxIiwiaXNzIjoiaHR0cHM6Ly9hcGkuaWQubWUvb2lkYyIsInN1YiI6IjkyMzdlNjRhLWU2MmEtNDVkMS04ZGIxLTVjMDMxMWE1MzIwYyIsImF1ZCI6Imh0dHBzOi8vbGlicmFyeS5tZWRpY2FyZS5nb3YvYXBwLWxpYnJhcnkvYXBwcy9icC1idWRkeSIsImlhdCI6MTc4MTI3MTg5MywiZXhwIjoxNzgxMjcyMTkzLCJqdGkiOiI1YWE1YmFiNC02ZDgzLTQxNTYtODYxZS0xZDM3NWI5ZWQ4NWMifQ.d2HCKMtUh8RKhPbJd3Ovq-ipssxjr8xn09Yz4ML8OK2qCEWRyCHWg4jCBFroLR99qMsyyNhexTRUE-28xtE-0-Psg3A9NmKMUwyYqPWkulVE4hTALR_YRNb3Qxfc2I5F1PScIv97buDchPGdP9HTuNfi58pOpFeczbv14lJafQq4bVBQ84yh4FjuI_LCfSUXC5KyuHKo9vzHeyNYWr1yGXDCih8BgG82mcQoi5Apz77jIRZwWo61cKRkuHJnNMlh57R20qXcyfYEpAkfKQnYwKirz8PFhazOp2Xd0LdRThCP5_fdWPZiAWGI34VIZHDOWYaAypJZ9zbX1u7We2g4wg
+eyJhbGciOiJSUzI1NiIsImtpZCI6InJYakk5SmRKUEt5ZURURnkzS0hFRnBWQ1NTM3NJTEdvZndieWswX25KcTAiLCJ0eXAiOiJKV1QifQ.eyJpZGVudGl0eV9hc3N1cmFuY2VfbGV2ZWwiOjIsImF1dGhfdGltZSI6MTc4MTgxNzIyMywiZ2l2ZW5fbmFtZSI6Ik1hcmlhIiwiZmFtaWx5X25hbWUiOiJMb3BleiIsImJpcnRoZGF0ZSI6IjE5NjItMDMtMTUiLCJhZGRyZXNzIjp7InN0cmVldF9hZGRyZXNzIjoiNDE4IEFsZGVyIENvdXJ0IiwibG9jYWxpdHkiOiJSaXZlcnNpZGUiLCJyZWdpb24iOiJDQSIsInBvc3RhbF9jb2RlIjoiOTI1MDEiLCJjb3VudHJ5IjoiVVMifSwic3NuX2l0aW5fc2hvcnQiOiI0MzIxIiwiaXNzIjoiaHR0cHM6Ly9hcGkuaWQubWUvb2lkYyIsInN1YiI6IjJkMDQwNzAwLTU4MmMtNGMyMy1hNzAxLWMwMDc2N2VmYWM3YiIsImF1ZCI6Imh0dHBzOi8vbGlicmFyeS5tZWRpY2FyZS5nb3YvYXBwLWxpYnJhcnkvYXBwcy9icC1idWRkeSIsImlhdCI6MTc4MTgxNzIyMywiZXhwIjoxNzgxODE3NTIzLCJqdGkiOiJhMGYxMmI0MC1hMGQwLTRkMWQtYjgxOS04MDM4NTljM2IxMDgifQ.RSfep-XtA0oALxDGQDorB3baD9wlahItdRUNGRtAFBc29yFu8iPk51TCqLpdcRI3olwdbbS3ol0IFx60ZJ9ls7SCgFjSqs7xdkn4eZ-lwKxvKSHPZa3tzJLaaLyn9GBDrzdT4_ahXPQSPo1WKGnIbMGg1UOBl1aMROxiOBod-IdWl-KqLyFC4rWieWRpG4Pyrl6KDI7YCg8r85AhTynoO_7NNj4BpOH9P3fmNKL36DUJyiE5Ds8JWz9tb6VgicztUtdyoSTz3RajCp6j1-Ze8SQBNWw9QxWfPD6IJyV5VxgZhJLDOc7vv4IOteebvJ04lXWYA6C8LK7ZcRLMKnsWqw
 ```
 
 Decoded header:
@@ -43,7 +43,7 @@ Decoded header:
 ```json
 {
   "alg": "RS256",
-  "kid": "eNu1VtIwGxPVFO8RWvA3T5RjmL2ytO7ZBsGiNJBDPLM",
+  "kid": "rXjI9JdJPKyeDTFy3KHEFpVCSS3sILGofwbyk0_nJq0",
   "typ": "JWT"
 }
 ```
@@ -53,7 +53,7 @@ Decoded payload:
 ```json
 {
   "identity_assurance_level": 2,
-  "auth_time": 1781271893,
+  "auth_time": 1781817223,
   "given_name": "Maria",
   "family_name": "Lopez",
   "birthdate": "1962-03-15",
@@ -66,12 +66,12 @@ Decoded payload:
   },
   "ssn_itin_short": "4321",
   "iss": "https://api.id.me/oidc",
-  "sub": "9237e64a-e62a-45d1-8db1-5c0311a5320c",
+  "sub": "2d040700-582c-4c23-a701-c00767efac7b",
   "aud": "https://library.medicare.gov/app-library/apps/bp-buddy",
-  "iat": 1781271893,
-  "exp": 1781272193,
-  "jti": "5aa5bab4-6d83-4156-861e-1d375b9ed85c"
+  "iat": 1781817223,
+  "exp": 1781817523,
+  "jti": "a0f12b40-a0d0-4d1d-b819-803859c3b108"
 }
 ```
 
-*Generated 2026-06-12T13:45:53.000Z by `tools/artifact-generator` in this repository. Keys are throwaway examples; every signature verifies against the keys in [keys-and-trust-anchors](keys-and-trust-anchors.md).*
+*Generated 2026-06-18T21:14:43.000Z by `tools/artifact-generator` in this repository. Keys are throwaway examples; every signature verifies against the keys in [keys-and-trust-anchors](keys-and-trust-anchors.md).*
