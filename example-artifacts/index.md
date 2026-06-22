@@ -19,4 +19,4 @@
 - [Key rotation](key-rotation.md)
 - [Keys and trust anchors](keys-and-trust-anchors.md)
 
-*Generated 2026-06-12T13:45:53.000Z by `tools/artifact-generator` in this repository.*
+*Generated 2026-06-18T21:14:43.000Z by `tools/artifact-generator` in this repository.*

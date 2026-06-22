@@ -8,12 +8,12 @@
 POST https://lakeside.example/oauth/register HTTP/1.1
 Host: lakeside.example
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJSUzM4NCIsImtpZCI6ImxwRmdBZlZX... (key-possession JWT, same shape as in 2a)
+Authorization: Bearer eyJhbGciOiJSUzM4NCIsImtpZCI6IkRxakdodjdm... (key-possession JWT, same shape as in 2a)
 ```
 
 ```json
 {
-  "software_statement": "eyJhbGciOiJFUzM4NCIsImtpZCI6Ino3MUE1Zi1KLWhleDA0cWk3LVhiV0ZD... (full value in software-statement)",
+  "software_statement": "eyJhbGciOiJFUzM4NCIsImtpZCI6Ijd0RmY4di0td1ZSS0FJWFRsZ3Qxc1dF... (full value in software-statement)",
   "grant_types": [
     "client_credentials"
   ],
@@ -44,4 +44,4 @@ Content-Type: application/json
 }
 ```
 
-*Generated 2026-06-12T13:45:53.000Z by `tools/artifact-generator` in this repository. Keys are throwaway examples; every signature verifies against the keys in [keys-and-trust-anchors](keys-and-trust-anchors.md).*
+*Generated 2026-06-18T21:14:43.000Z by `tools/artifact-generator` in this repository. Keys are throwaway examples; every signature verifies against the keys in [keys-and-trust-anchors](keys-and-trust-anchors.md).*
